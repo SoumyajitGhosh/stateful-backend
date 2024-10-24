@@ -24,11 +24,12 @@ export class PubSubManager {
 
     public userSubscribe(userId: string, stock: string) {
         if (!this.subscriptions.has(stock)) {
-            this.subscriptions.set(stock, []);
+            this.subscriptions.set(stock, []); // Initialize an empty array if no one has subscribed to this stock yet
         }
-        this.subscriptions.get(stock)?.push(userId);
+        this.subscriptions.get(stock)?.push(userId); // Add the user to the list of subscribers
 
         if (this.subscriptions.get(stock)?.length === 1) {
+            // If this is the first subscriber, subscribe to the Redis channel
             this.redisClient.subscribe(stock, (message) => {
                 this.handleMessage(stock, message);
             });
@@ -40,7 +41,7 @@ export class PubSubManager {
         this.subscriptions.set(stock, this.subscriptions.get(stock)?.filter((sub) => sub !== userId) || []);
 
         if (this.subscriptions.get(stock)?.length === 0) {
-            this.redisClient.unsubscribe(stock);
+            this.redisClient.unsubscribe(stock); // Unsubscribe if no users remain
             console.log(`UnSubscribed to Redis channel: ${stock}`);
         }
     }
